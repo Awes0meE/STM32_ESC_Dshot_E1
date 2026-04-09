@@ -40,7 +40,8 @@ typedef struct
     uint16_t run_cmd_dshot;
     uint32_t zero_offset_sample_count;
     float zero_offset_sum_v;
-    float zero_offset_voltage;
+    float baseline_zero_offset_voltage;
+    float active_zero_offset_voltage;
     uint8_t boot_banner_sent;
     uint8_t connected_banner_sent;
     uint8_t wait_start_banner_sent;
@@ -87,6 +88,7 @@ static void H1_UartRx_Start(void);
 static void H1_ProcessReceivedByte(uint8_t byte);
 static uint8_t H1_IsStartCommand(const char *text);
 static void H1_ProcessStartCommand(void);
+static void H1_UpdateCurrentDerived(H1_AdcProcessed_t *adc_data);
 static void H1_Button_Task(uint32_t now_ms);
 static void H1_HandleThrottleButtonPress(void);
 static void H1_SendThrottleSetLine(void);
@@ -110,7 +112,8 @@ void H1_Test_Init(void)
     g_h1.current_cmd_us = 0U;
     g_h1.current_dshot_value = 0U;
     g_h1.run_cmd_dshot = H1_RUN_THROTTLE_DSHOT;
-    g_h1.zero_offset_voltage = CURRENT_OFFSET_V;
+    g_h1.baseline_zero_offset_voltage = CURRENT_OFFSET_V;
+    g_h1.active_zero_offset_voltage = CURRENT_OFFSET_V;
 
     if (g_h1.run_cmd_dshot < H1_RUN_THROTTLE_MIN_DSHOT)
     {
@@ -156,6 +159,7 @@ void H1_Test_Task(void)
 
     process_adc_average(&g_h1.adc);
     update_zero_offset(&g_h1.adc, now_ms);
+    H1_UpdateCurrentDerived(&g_h1.adc);
     H1_Dshot_Service(now_ms);
     H1_StatusLed_Update(now_ms);
     H1_Button_Task(now_ms);
@@ -312,19 +316,15 @@ void process_adc_average(H1_AdcProcessed_t *out)
 
     out->v_i_sense = (float)out->adc_i_raw * adc_to_volt;
     out->v_vbat_adc = (float)out->adc_vbat_raw * adc_to_volt;
-    out->current_A = (out->v_i_sense - g_h1.zero_offset_voltage) * CURRENT_SCALE_A_PER_V;
     out->vbat_V = out->v_vbat_adc * VBAT_DIVIDER_RATIO;
-    out->power_W = out->current_A * out->vbat_V;
+    H1_UpdateCurrentDerived(out);
 }
 
 void update_zero_offset(const H1_AdcProcessed_t *adc_data, uint32_t now_ms)
 {
-    if (adc_data == NULL)
-    {
-        return;
-    }
+    uint32_t state_elapsed_ms;
 
-    if ((g_h1.state != STATE_WAIT_BT) && (g_h1.state != STATE_PREPARE))
+    if (adc_data == NULL)
     {
         return;
     }
@@ -340,24 +340,72 @@ void update_zero_offset(const H1_AdcProcessed_t *adc_data, uint32_t now_ms)
     }
 
     g_h1.last_zero_offset_sample_tick = now_ms;
-    g_h1.zero_offset_sum_v += adc_data->v_i_sense;
-    g_h1.zero_offset_sample_count++;
 
-    if (g_h1.zero_offset_sample_count > 0U)
+    if ((g_h1.state == STATE_WAIT_BT) || (g_h1.state == STATE_PREPARE))
     {
-        g_h1.zero_offset_voltage = g_h1.zero_offset_sum_v / (float)g_h1.zero_offset_sample_count;
+        g_h1.zero_offset_sum_v += adc_data->v_i_sense;
+        g_h1.zero_offset_sample_count++;
+
+        if (g_h1.zero_offset_sample_count > 0U)
+        {
+            g_h1.baseline_zero_offset_voltage = g_h1.zero_offset_sum_v / (float)g_h1.zero_offset_sample_count;
+            g_h1.active_zero_offset_voltage = g_h1.baseline_zero_offset_voltage;
+        }
+        return;
     }
+
+    state_elapsed_ms = now_ms - g_h1.state_enter_tick;
+
+    if (g_h1.state == STATE_STOP)
+    {
+        if (state_elapsed_ms >= H1_ZERO_TRACK_DELAY_MS)
+        {
+            g_h1.active_zero_offset_voltage +=
+                H1_ZERO_TRACK_ALPHA_STOP * (adc_data->v_i_sense - g_h1.active_zero_offset_voltage);
+        }
+        return;
+    }
+
+    if (g_h1.state == STATE_DONE)
+    {
+        g_h1.active_zero_offset_voltage +=
+            H1_ZERO_TRACK_ALPHA_DONE * (adc_data->v_i_sense - g_h1.active_zero_offset_voltage);
+    }
+}
+
+static void H1_UpdateCurrentDerived(H1_AdcProcessed_t *adc_data)
+{
+    float signed_delta_v;
+
+    if (adc_data == NULL)
+    {
+        return;
+    }
+
+    adc_data->active_zero_offset_V = g_h1.active_zero_offset_voltage;
+    adc_data->delta_i_V = adc_data->v_i_sense - g_h1.active_zero_offset_voltage;
+
+#if (H1_CURRENT_SIGN_INVERT != 0U)
+    signed_delta_v = -adc_data->delta_i_V;
+#else
+    signed_delta_v = adc_data->delta_i_V;
+#endif
+
+    adc_data->current_A = signed_delta_v * CURRENT_SCALE_A_PER_V;
+    adc_data->power_W = adc_data->current_A * adc_data->vbat_V;
 }
 
 void send_h1_csv_line(const H1_AdcProcessed_t *adc_data)
 {
-    char line[224];
+    char line[288];
     char v_i_sense_str[20];
     char v_vbat_adc_str[20];
     char current_a_str[20];
     char vbat_v_str[20];
     char power_w_str[20];
     char zero_offset_str[20];
+    char active_zero_offset_str[20];
+    char delta_i_v_str[20];
     uint32_t t_ms;
     int len;
 
@@ -375,11 +423,13 @@ void send_h1_csv_line(const H1_AdcProcessed_t *adc_data)
     H1_FormatFloat3(current_a_str, sizeof(current_a_str), adc_data->current_A);
     H1_FormatFloat3(vbat_v_str, sizeof(vbat_v_str), adc_data->vbat_V);
     H1_FormatFloat3(power_w_str, sizeof(power_w_str), adc_data->power_W);
-    H1_FormatFloat3(zero_offset_str, sizeof(zero_offset_str), g_h1.zero_offset_voltage);
+    H1_FormatFloat3(zero_offset_str, sizeof(zero_offset_str), g_h1.baseline_zero_offset_voltage);
+    H1_FormatFloat3(active_zero_offset_str, sizeof(active_zero_offset_str), adc_data->active_zero_offset_V);
+    H1_FormatFloat3(delta_i_v_str, sizeof(delta_i_v_str), adc_data->delta_i_V);
 
     len = snprintf(line,
                    sizeof(line),
-                   "h1:%lu,%u,%u,%u,%u,%u,%s,%s,%s,%s,%s,%s\r\n",
+                   "h1:%lu,%u,%u,%u,%u,%u,%s,%s,%s,%s,%s,%s,%s,%s\r\n",
                    (unsigned long)t_ms,
                    (unsigned int)g_h1.state,
                    (unsigned int)g_h1.current_cmd_us,
@@ -391,7 +441,9 @@ void send_h1_csv_line(const H1_AdcProcessed_t *adc_data)
                    current_a_str,
                    vbat_v_str,
                    power_w_str,
-                   zero_offset_str);
+                   zero_offset_str,
+                   active_zero_offset_str,
+                   delta_i_v_str);
 
     if (len > 0)
     {
@@ -442,7 +494,8 @@ static void H1_StartSession(uint32_t now_ms)
     g_h1.last_zero_offset_sample_tick = now_ms;
     g_h1.zero_offset_sum_v = 0.0f;
     g_h1.zero_offset_sample_count = 0U;
-    g_h1.zero_offset_voltage = CURRENT_OFFSET_V;
+    g_h1.baseline_zero_offset_voltage = CURRENT_OFFSET_V;
+    g_h1.active_zero_offset_voltage = CURRENT_OFFSET_V;
     g_h1.start_command_received = 0U;
     g_h1.start_armed_once = 0U;
     g_h1.header_sent = 0U;
@@ -516,7 +569,7 @@ static void H1_SendStartAck(void)
 static void H1_SendCsvHeaderOnce(void)
 {
     static const char header[] =
-        "# firewater_channels,ch0=t_ms,ch1=state,ch2=cmd_raw,ch3=dshot_cmd,ch4=adc_i_raw,ch5=adc_vbat_raw,ch6=v_i_sense,ch7=v_vbat_adc,ch8=current_A,ch9=vbat_V,ch10=power_W,ch11=zero_offset_V\r\n";
+        "# firewater_channels,ch0=t_ms,ch1=state,ch2=cmd_raw,ch3=dshot_cmd,ch4=adc_i_raw,ch5=adc_vbat_raw,ch6=v_i_sense,ch7=v_vbat_adc,ch8=current_A,ch9=vbat_V,ch10=power_W,ch11=zero_offset_V,ch12=active_zero_offset_V,ch13=delta_i_V\r\n";
 
     if (g_h1.header_sent == 0U)
     {
@@ -568,8 +621,10 @@ static void H1_UartWrite(const char *text)
 static void H1_FormatFloat3(char *dst, size_t len, float value)
 {
     int32_t scaled;
+    int32_t abs_scaled;
     int32_t integer_part;
     int32_t fractional_part;
+    const char *sign_str;
 
     if ((dst == NULL) || (len == 0U))
     {
@@ -577,14 +632,12 @@ static void H1_FormatFloat3(char *dst, size_t len, float value)
     }
 
     scaled = (int32_t)(value * 1000.0f + ((value >= 0.0f) ? 0.5f : -0.5f));
-    integer_part = scaled / 1000;
-    fractional_part = scaled % 1000;
-    if (fractional_part < 0)
-    {
-        fractional_part = -fractional_part;
-    }
+    sign_str = (scaled < 0) ? "-" : "";
+    abs_scaled = (scaled < 0) ? -scaled : scaled;
+    integer_part = abs_scaled / 1000;
+    fractional_part = abs_scaled % 1000;
 
-    (void)snprintf(dst, len, "%ld.%03ld", (long)integer_part, (long)fractional_part);
+    (void)snprintf(dst, len, "%s%ld.%03ld", sign_str, (long)integer_part, (long)fractional_part);
 }
 
 static void H1_Button_Task(uint32_t now_ms)

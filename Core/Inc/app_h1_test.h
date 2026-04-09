@@ -45,7 +45,7 @@ extern "C" {
 #endif
 
 #ifndef H1_RUN_THROTTLE_DSHOT
-#define H1_RUN_THROTTLE_DSHOT          500U
+#define H1_RUN_THROTTLE_DSHOT          1000U
 #endif
 
 #ifndef H1_RUN_THROTTLE_MIN_DSHOT
@@ -57,7 +57,7 @@ extern "C" {
 #endif
 
 #ifndef H1_RUN_THROTTLE_STEP_DSHOT
-#define H1_RUN_THROTTLE_STEP_DSHOT     50U
+#define H1_RUN_THROTTLE_STEP_DSHOT     100U
 #endif
 
 #ifndef H1_RUN_MS
@@ -78,6 +78,22 @@ extern "C" {
 
 #ifndef H1_ZERO_OFFSET_SAMPLE_INTERVAL_MS
 #define H1_ZERO_OFFSET_SAMPLE_INTERVAL_MS 10U
+#endif
+
+#ifndef H1_CURRENT_SIGN_INVERT
+#define H1_CURRENT_SIGN_INVERT         0U
+#endif
+
+#ifndef H1_ZERO_TRACK_DELAY_MS
+#define H1_ZERO_TRACK_DELAY_MS         3000U
+#endif
+
+#ifndef H1_ZERO_TRACK_ALPHA_STOP
+#define H1_ZERO_TRACK_ALPHA_STOP       0.01f
+#endif
+
+#ifndef H1_ZERO_TRACK_ALPHA_DONE
+#define H1_ZERO_TRACK_ALPHA_DONE       0.02f
 #endif
 
 #ifndef H1_BUTTON_DEBOUNCE_MS
@@ -134,6 +150,8 @@ typedef struct
     uint16_t adc_vbat_raw;
     float v_i_sense;
     float v_vbat_adc;
+    float delta_i_V;
+    float active_zero_offset_V;
     float current_A;
     float vbat_V;
     float power_W;
