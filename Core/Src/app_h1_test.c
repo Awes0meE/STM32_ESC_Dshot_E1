@@ -99,6 +99,7 @@ static void H1_Oled_Clear(void);
 static void H1_Oled_Flush(void);
 static void H1_Oled_Update(uint32_t now_ms);
 static void H1_Oled_DrawLine(uint8_t page, const char *text);
+static void H1_Oled_DrawChar(uint8_t x, uint8_t y, char c);
 static void H1_Oled_SetPixel(uint8_t x, uint8_t y, uint8_t on);
 static void H1_Oled_GetGlyph5x7(char c, uint8_t glyph[5]);
 
@@ -805,7 +806,13 @@ static void H1_Oled_Update(uint32_t now_ms)
     char line1[32];
     char line2[32];
     char line3[32];
+    char line4[32];
     char value_str[20];
+    uint32_t prepare_elapsed_ms;
+    uint32_t prepare_remaining_s;
+    uint32_t run_elapsed_ms;
+    uint32_t run_elapsed_s;
+    char prompt_char = '\0';
 
     if (g_h1.oled_ready == 0U)
     {
@@ -830,24 +837,77 @@ static void H1_Oled_Update(uint32_t now_ms)
     H1_FormatFloat3(value_str, sizeof(value_str), g_h1.adc.power_W);
     (void)snprintf(line2, sizeof(line2), "POWR %sW", value_str);
 
+    if (g_h1.state == STATE_PREPARE)
+    {
+        prepare_elapsed_ms = now_ms - g_h1.state_enter_tick;
+        if (prepare_elapsed_ms >= H1_BT_PREPARE_MS)
+        {
+            prepare_remaining_s = 0U;
+        }
+        else
+        {
+            prepare_remaining_s = (H1_BT_PREPARE_MS - prepare_elapsed_ms + 999U) / 1000U;
+        }
+    }
+    else
+    {
+        prepare_remaining_s = 0U;
+    }
+
+    if (g_h1.state == STATE_RUN)
+    {
+        run_elapsed_ms = now_ms - g_h1.state_enter_tick;
+    }
+    else if ((g_h1.state == STATE_STOP) || (g_h1.state == STATE_DONE) || (g_h1.state == STATE_IDLE))
+    {
+        run_elapsed_ms = H1_RUN_MS;
+    }
+    else
+    {
+        run_elapsed_ms = 0U;
+    }
+
+    run_elapsed_s = run_elapsed_ms / 1000U;
     (void)snprintf(line3, sizeof(line3), "THR  %u", (unsigned int)g_h1.run_cmd_dshot);
+    if (g_h1.state == STATE_PREPARE)
+    {
+        (void)snprintf(line4, sizeof(line4), "PREP %2luS", (unsigned long)prepare_remaining_s);
+    }
+    else
+    {
+        (void)snprintf(line4, sizeof(line4), "TIME %2luS", (unsigned long)run_elapsed_s);
+    }
+
+    if ((g_h1.state == STATE_RUN) && (((now_ms / 300U) % 2U) == 0U))
+    {
+        if ((run_elapsed_ms >= 25000U) && (run_elapsed_ms < 30000U))
+        {
+            prompt_char = 'R';
+        }
+        else if ((run_elapsed_ms >= 35000U) && (run_elapsed_ms < 40000U))
+        {
+            prompt_char = 'H';
+        }
+    }
 
     H1_Oled_DrawLine(0U, line0);
     H1_Oled_DrawLine(1U, line1);
     H1_Oled_DrawLine(2U, line2);
     H1_Oled_DrawLine(3U, line3);
+    H1_Oled_DrawLine(4U, line4);
+    if (prompt_char != '\0')
+    {
+        H1_Oled_DrawChar(116U, 55U, prompt_char);
+    }
     H1_Oled_Flush();
 }
 
 static void H1_Oled_DrawLine(uint8_t line_index, const char *text)
 {
-    uint8_t glyph[5];
     uint8_t x = 0U;
     uint8_t y;
-    uint8_t col;
-    uint8_t row;
 
-    if ((g_h1.oled_ready == 0U) || (line_index >= 4U))
+    if ((g_h1.oled_ready == 0U) || (line_index >= 5U))
     {
         return;
     }
@@ -856,22 +916,30 @@ static void H1_Oled_DrawLine(uint8_t line_index, const char *text)
 
     while ((text != NULL) && (*text != '\0') && (x <= 120U))
     {
-        H1_Oled_GetGlyph5x7(*text, glyph);
-
-        for (col = 0U; col < 5U; col++)
-        {
-            for (row = 0U; row < 7U; row++)
-            {
-                if ((glyph[col] & (uint8_t)(1U << row)) != 0U)
-                {
-                    H1_Oled_SetPixel((uint8_t)(x + col), (uint8_t)(y + row), 1U);
-                    H1_Oled_SetPixel((uint8_t)(x + col + 1U), (uint8_t)(y + row), 1U);
-                }
-            }
-        }
-
+        H1_Oled_DrawChar(x, y, *text);
         x = (uint8_t)(x + 7U);
         text++;
+    }
+}
+
+static void H1_Oled_DrawChar(uint8_t x, uint8_t y, char c)
+{
+    uint8_t glyph[5];
+    uint8_t col;
+    uint8_t row;
+
+    H1_Oled_GetGlyph5x7(c, glyph);
+
+    for (col = 0U; col < 5U; col++)
+    {
+        for (row = 0U; row < 7U; row++)
+        {
+            if ((glyph[col] & (uint8_t)(1U << row)) != 0U)
+            {
+                H1_Oled_SetPixel((uint8_t)(x + col), (uint8_t)(y + row), 1U);
+                H1_Oled_SetPixel((uint8_t)(x + col + 1U), (uint8_t)(y + row), 1U);
+            }
+        }
     }
 }
 
@@ -924,10 +992,14 @@ static void H1_Oled_GetGlyph5x7(char c, uint8_t glyph[5])
     case 'A': glyph[0] = 0x7EU; glyph[1] = 0x11U; glyph[2] = 0x11U; glyph[3] = 0x11U; glyph[4] = 0x7EU; break;
     case 'B': glyph[0] = 0x7FU; glyph[1] = 0x49U; glyph[2] = 0x49U; glyph[3] = 0x49U; glyph[4] = 0x36U; break;
     case 'C': glyph[0] = 0x3EU; glyph[1] = 0x41U; glyph[2] = 0x41U; glyph[3] = 0x41U; glyph[4] = 0x22U; break;
+    case 'E': glyph[0] = 0x7FU; glyph[1] = 0x49U; glyph[2] = 0x49U; glyph[3] = 0x49U; glyph[4] = 0x41U; break;
     case 'H': glyph[0] = 0x7FU; glyph[1] = 0x08U; glyph[2] = 0x08U; glyph[3] = 0x08U; glyph[4] = 0x7FU; break;
+    case 'I': glyph[0] = 0x00U; glyph[1] = 0x41U; glyph[2] = 0x7FU; glyph[3] = 0x41U; glyph[4] = 0x00U; break;
+    case 'M': glyph[0] = 0x7FU; glyph[1] = 0x02U; glyph[2] = 0x0CU; glyph[3] = 0x02U; glyph[4] = 0x7FU; break;
     case 'O': glyph[0] = 0x3EU; glyph[1] = 0x41U; glyph[2] = 0x41U; glyph[3] = 0x41U; glyph[4] = 0x3EU; break;
     case 'P': glyph[0] = 0x7FU; glyph[1] = 0x09U; glyph[2] = 0x09U; glyph[3] = 0x09U; glyph[4] = 0x06U; break;
     case 'R': glyph[0] = 0x7FU; glyph[1] = 0x09U; glyph[2] = 0x19U; glyph[3] = 0x29U; glyph[4] = 0x46U; break;
+    case 'S': glyph[0] = 0x46U; glyph[1] = 0x49U; glyph[2] = 0x49U; glyph[3] = 0x49U; glyph[4] = 0x31U; break;
     case 'T': glyph[0] = 0x01U; glyph[1] = 0x01U; glyph[2] = 0x7FU; glyph[3] = 0x01U; glyph[4] = 0x01U; break;
     case 'U': glyph[0] = 0x3FU; glyph[1] = 0x40U; glyph[2] = 0x40U; glyph[3] = 0x40U; glyph[4] = 0x3FU; break;
     case 'V': glyph[0] = 0x1FU; glyph[1] = 0x20U; glyph[2] = 0x40U; glyph[3] = 0x20U; glyph[4] = 0x1FU; break;

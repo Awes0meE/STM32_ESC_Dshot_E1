@@ -45,7 +45,7 @@ extern "C" {
 #endif
 
 #ifndef H1_RUN_THROTTLE_DSHOT
-#define H1_RUN_THROTTLE_DSHOT          1000U
+#define H1_RUN_THROTTLE_DSHOT          800U
 #endif
 
 #ifndef H1_RUN_THROTTLE_MIN_DSHOT
