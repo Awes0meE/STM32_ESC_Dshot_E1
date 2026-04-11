@@ -163,7 +163,7 @@ Before the test starts, a local button can adjust the run throttle directly in r
 - 当前默认运行油门为：
   - `H1_RUN_THROTTLE_DSHOT = 800`
 
-在测试正式开始之前，可以通过本地按钮直接以 DShot 原始值调整待运行油门。
+在测试正式开始之前，可以通过按钮直接以 DShot 原始值调整待运行油门。
 
 ---
 
@@ -611,8 +611,7 @@ It is intended for:
 It does **not** implement:
 
 - RPM closed-loop control
-- H2 step-response workflow
-- scope marker output
+- H2 step-response workflow and after experiments
 
 **中文**
 
@@ -627,5 +626,4 @@ It does **not** implement:
 它**不包含**：
 
 - RPM 闭环控制
-- H2 阶跃响应流程
-- 示波器 marker 输出
+- H2 阶跃响应流程以及后续实验
