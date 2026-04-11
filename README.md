@@ -4,6 +4,23 @@ STM32F103C8T6-based H1 test firmware for ESC steady-state comparison experiments
 
 基于 `STM32F103C8T6` 的 H1 实验固件，用于 ESC 稳态对比测试。
 
+---
+
+## H1 Test Firmware
+
+## H1 实验固件说明
+
+This repository contains the current H1 firmware used for ESC steady-state comparison work.  
+本仓库保存了当前用于 ESC 稳态对比实验的 H1 固件版本。
+
+The firmware runs on a Blue Pill (`STM32F103C8T6`) board and acts as a lightweight experiment controller and data acquisition node.  
+该固件运行在 Blue Pill（`STM32F103C8T6`）开发板上，作为一个轻量级实验控制器和数据采集节点使用。
+
+It is intended for **steady-state operating point comparison**, especially for comparing different ESC variants under the same battery, motor, propeller, and throttle-command conditions.  
+它主要用于**稳态工况对比实验**，尤其适用于在相同电池、电机、螺旋桨和油门命令条件下，对不同 ESC 方案进行横向比较。
+
+---
+
 ## 1. Project Purpose | 项目用途
 
 **English**
@@ -512,7 +529,7 @@ Also ensure:
 
 Defined in [`Core/Inc/app_h1_test.h`](./Core/Inc/app_h1_test.h):
 
-**Timing / 时序**
+### Timing / 时序
 
 - `H1_BT_PREPARE_MS`
 - `H1_BT_CONNECT_CONFIRM_MS`
@@ -520,7 +537,7 @@ Defined in [`Core/Inc/app_h1_test.h`](./Core/Inc/app_h1_test.h):
 - `H1_STOP_MS`
 - `H1_SESSION_MAX_MS`
 
-**DShot / 油门**
+### DShot / 油门
 
 - `H1_RUN_THROTTLE_DSHOT`
 - `H1_RUN_THROTTLE_MIN_DSHOT`
@@ -528,7 +545,7 @@ Defined in [`Core/Inc/app_h1_test.h`](./Core/Inc/app_h1_test.h):
 - `H1_RUN_THROTTLE_STEP_DSHOT`
 - `H1_DSHOT_SEND_INTERVAL_MS`
 
-**Analog / 模拟量**
+### Analog / 模拟量
 
 - `VBAT_DIVIDER_RATIO`
 - `CURRENT_SCALE_A_PER_V`
@@ -537,7 +554,7 @@ Defined in [`Core/Inc/app_h1_test.h`](./Core/Inc/app_h1_test.h):
 - `H1_ZERO_TRACK_ALPHA_STOP`
 - `H1_ZERO_TRACK_ALPHA_DONE`
 
-**Display / 显示**
+### Display / 显示
 
 - `H1_OLED_UPDATE_INTERVAL_MS`
 - `H1_OLED_I2C_ADDR`
@@ -612,4 +629,3 @@ It does **not** implement:
 - RPM 闭环控制
 - H2 阶跃响应流程
 - 示波器 marker 输出
-
