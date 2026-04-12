@@ -47,7 +47,7 @@
                 "mode=UR",
                 "reset=HWrst",
                 "-w",
-                "${workspaceFolder}/build/Debug/STM32_ESC_DSHOT_H1.hex",
+                "${workspaceFolder}/build/Debug/STM32_ESC_DSHOT_E1.hex",
                 "-v",
                 "-rst"
             ],

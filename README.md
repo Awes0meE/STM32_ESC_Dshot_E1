@@ -1,8 +1,8 @@
-# STM32_ESC_Dshot_H1
+﻿# STM32_ESC_Dshot_E1
 
-STM32F103C8T6-based H1 test firmware for ESC steady-state comparison experiments.
+STM32F103C8T6-based E1 test firmware for ESC steady-state comparison experiments.
 
-基于 `STM32F103C8T6` 的 H1 实验固件，用于 ESC 稳态对比测试。
+基于 `STM32F103C8T6` 的 E1 实验固件，用于 ESC 稳态对比测试。
 
 ---
 
@@ -25,7 +25,7 @@ It is intended for **steady-state operating point comparison**, especially for c
 
 **English**
 
-This repository contains the current H1 firmware used on a Blue Pill (`STM32F103C8T6`) board.  
+This repository contains the current E1 firmware used on a Blue Pill (`STM32F103C8T6`) board.  
 The board acts as a lightweight experiment controller and data acquisition node for ESC comparison work.
 
 Main responsibilities:
@@ -36,11 +36,11 @@ Main responsibilities:
 - display live status on a `1.3" I2C OLED`
 - provide a simple local throttle-step button before test start
 
-This H1 firmware is intended for **steady-state operating point comparison**, especially for comparing ESC variants under the same battery, motor, propeller, and command conditions.
+This E1 firmware is intended for **steady-state operating point comparison**, especially for comparing ESC variants under the same battery, motor, propeller, and command conditions.
 
 **中文**
 
-这个仓库保存了当前 H1 实验所用的 Blue Pill（`STM32F103C8T6`）固件。  
+这个仓库保存了当前 E1 实验所用的 Blue Pill（`STM32F103C8T6`）固件。  
 这块板子作为一个轻量级实验控制器和数据采集节点，服务于 ESC 对比实验。
 
 主要职责：
@@ -51,11 +51,11 @@ This H1 firmware is intended for **steady-state operating point comparison**, es
 - 在 `1.3 寸 I2C OLED` 上显示实时状态
 - 在测试开始前通过本地按钮调整待运行油门
 
-这份 H1 固件的目标是做**稳态工况对比**，尤其适用于在相同电池、电机、桨和命令条件下比较不同 ESC 的表现。
+这份 E1 固件的目标是做**稳态工况对比**，尤其适用于在相同电池、电机、桨和命令条件下比较不同 ESC 的表现。
 
 ---
 
-## 2. Current H1 Workflow | 当前 H1 实验流程
+## 2. Current E1 Workflow | 当前 E1 实验流程
 
 **English**
 
@@ -93,11 +93,11 @@ The MCU performs the timing locally. The PC side only needs to connect and send 
 
 ---
 
-## 3. H1 State Machine | H1 状态机
+## 3. E1 State Machine | E1 状态机
 
 **English**
 
-State enum is defined in [`Core/Inc/app_h1_test.h`](./Core/Inc/app_h1_test.h):
+State enum is defined in [`Core/Inc/app_e1_test.h`](./Core/Inc/app_e1_test.h):
 
 - `STATE_WAIT_BT`
 - `STATE_PREPARE`
@@ -108,16 +108,16 @@ State enum is defined in [`Core/Inc/app_h1_test.h`](./Core/Inc/app_h1_test.h):
 
 Main entry points:
 
-- `H1_Test_Init()`
-- `H1_Test_Task()`
+- `E1_Test_Init()`
+- `E1_Test_Task()`
 
 Core control implementation:
 
-- [`Core/Src/app_h1_test.c`](./Core/Src/app_h1_test.c)
+- [`Core/Src/app_e1_test.c`](./Core/Src/app_e1_test.c)
 
 **中文**
 
-状态枚举定义在 [`Core/Inc/app_h1_test.h`](./Core/Inc/app_h1_test.h)：
+状态枚举定义在 [`Core/Inc/app_e1_test.h`](./Core/Inc/app_e1_test.h)：
 
 - `STATE_WAIT_BT`
 - `STATE_PREPARE`
@@ -128,12 +128,12 @@ Core control implementation:
 
 主入口函数：
 
-- `H1_Test_Init()`
-- `H1_Test_Task()`
+- `E1_Test_Init()`
+- `E1_Test_Task()`
 
 核心控制实现位于：
 
-- [`Core/Src/app_h1_test.c`](./Core/Src/app_h1_test.c)
+- [`Core/Src/app_e1_test.c`](./Core/Src/app_e1_test.c)
 
 ---
 
@@ -148,7 +148,7 @@ Current behavior:
 - `0` means stop
 - valid throttle range is `48 ~ 2047`
 - the current default run command is:
-  - `H1_RUN_THROTTLE_DSHOT = 800`
+  - `E1_RUN_THROTTLE_DSHOT = 800`
 
 Before the test starts, a local button can adjust the run throttle directly in raw DShot units.
 
@@ -161,7 +161,7 @@ Before the test starts, a local button can adjust the run throttle directly in r
 - `0` 表示停机
 - 有效油门范围为 `48 ~ 2047`
 - 当前默认运行油门为：
-  - `H1_RUN_THROTTLE_DSHOT = 800`
+  - `E1_RUN_THROTTLE_DSHOT = 800`
 
 在测试正式开始之前，可以通过按钮直接以 DShot 原始值调整待运行油门。
 
@@ -171,7 +171,7 @@ Before the test starts, a local button can adjust the run throttle directly in r
 
 **English**
 
-The current H1 firmware still uses `HC-05` Bluetooth serial for experiment triggering and logging.
+The current E1 firmware still uses `HC-05` Bluetooth serial for experiment triggering and logging.
 
 Behavior:
 
@@ -191,7 +191,7 @@ Supported characteristics:
 
 **中文**
 
-当前 H1 版本仍然使用 `HC-05` 蓝牙串口来完成实验触发和日志输出。
+当前 E1 版本仍然使用 `HC-05` 蓝牙串口来完成实验触发和日志输出。
 
 行为如下：
 
@@ -228,7 +228,7 @@ Short press behavior:
 
 Current step size:
 
-- `H1_RUN_THROTTLE_STEP_DSHOT = 100`
+- `E1_RUN_THROTTLE_STEP_DSHOT = 100`
 
 Current range:
 
@@ -250,7 +250,7 @@ After reaching the maximum, it wraps back to the minimum.
 
 当前步进：
 
-- `H1_RUN_THROTTLE_STEP_DSHOT = 100`
+- `E1_RUN_THROTTLE_STEP_DSHOT = 100`
 
 当前范围：
 
@@ -389,7 +389,7 @@ power_W   = current_A * vbat_V
 
 Current polarity is currently set by:
 
-- `H1_CURRENT_SIGN_INVERT = 0`
+- `E1_CURRENT_SIGN_INVERT = 0`
 
 The firmware uses:
 
@@ -437,7 +437,7 @@ power_W   = current_A * vbat_V
 
 当前极性配置为：
 
-- `H1_CURRENT_SIGN_INVERT = 0`
+- `E1_CURRENT_SIGN_INVERT = 0`
 
 固件内部使用两套零点：
 
@@ -487,7 +487,7 @@ power_W   = current_A * vbat_V
 
 **English**
 
-Important assumptions for the current H1 project:
+Important assumptions for the current E1 project:
 
 - `TIM3_CH1` on `PA6` for DShot output
 - `USART1` enabled for HC-05 serial
@@ -506,7 +506,7 @@ Also ensure:
 
 **中文**
 
-当前 H1 工程建议保持这些前提：
+当前 E1 工程建议保持这些前提：
 
 - `PA6 / TIM3_CH1` 用于 DShot 输出
 - `USART1` 启用，用于 HC-05 串口
@@ -527,38 +527,38 @@ Also ensure:
 
 ## 12. Key Configurable Macros | 关键可调宏
 
-Defined in [`Core/Inc/app_h1_test.h`](./Core/Inc/app_h1_test.h):
+Defined in [`Core/Inc/app_e1_test.h`](./Core/Inc/app_e1_test.h):
 
 ### Timing / 时序
 
-- `H1_BT_PREPARE_MS`
-- `H1_BT_CONNECT_CONFIRM_MS`
-- `H1_RUN_MS`
-- `H1_STOP_MS`
-- `H1_SESSION_MAX_MS`
+- `E1_BT_PREPARE_MS`
+- `E1_BT_CONNECT_CONFIRM_MS`
+- `E1_RUN_MS`
+- `E1_STOP_MS`
+- `E1_SESSION_MAX_MS`
 
 ### DShot / 油门
 
-- `H1_RUN_THROTTLE_DSHOT`
-- `H1_RUN_THROTTLE_MIN_DSHOT`
-- `H1_RUN_THROTTLE_MAX_DSHOT`
-- `H1_RUN_THROTTLE_STEP_DSHOT`
-- `H1_DSHOT_SEND_INTERVAL_MS`
+- `E1_RUN_THROTTLE_DSHOT`
+- `E1_RUN_THROTTLE_MIN_DSHOT`
+- `E1_RUN_THROTTLE_MAX_DSHOT`
+- `E1_RUN_THROTTLE_STEP_DSHOT`
+- `E1_DSHOT_SEND_INTERVAL_MS`
 
 ### Analog / 模拟量
 
 - `VBAT_DIVIDER_RATIO`
 - `CURRENT_SCALE_A_PER_V`
-- `H1_CURRENT_SIGN_INVERT`
-- `H1_ZERO_TRACK_DELAY_MS`
-- `H1_ZERO_TRACK_ALPHA_STOP`
-- `H1_ZERO_TRACK_ALPHA_DONE`
+- `E1_CURRENT_SIGN_INVERT`
+- `E1_ZERO_TRACK_DELAY_MS`
+- `E1_ZERO_TRACK_ALPHA_STOP`
+- `E1_ZERO_TRACK_ALPHA_DONE`
 
 ### Display / 显示
 
-- `H1_OLED_UPDATE_INTERVAL_MS`
-- `H1_OLED_I2C_ADDR`
-- `H1_OLED_COLUMN_OFFSET`
+- `E1_OLED_UPDATE_INTERVAL_MS`
+- `E1_OLED_I2C_ADDR`
+- `E1_OLED_COLUMN_OFFSET`
 
 ---
 
@@ -575,9 +575,9 @@ cmake --build --preset Debug
 
 Expected outputs:
 
-- `build/Debug/STM32_ESC_DSHOT_H1.elf`
-- `build/Debug/STM32_ESC_DSHOT_H1.hex`
-- `build/Debug/STM32_ESC_DSHOT_H1.bin`
+- `build/Debug/STM32_ESC_DSHOT_E1.elf`
+- `build/Debug/STM32_ESC_DSHOT_E1.hex`
+- `build/Debug/STM32_ESC_DSHOT_E1.bin`
 
 **中文**
 
@@ -590,9 +590,9 @@ cmake --build --preset Debug
 
 产物包括：
 
-- `build/Debug/STM32_ESC_DSHOT_H1.elf`
-- `build/Debug/STM32_ESC_DSHOT_H1.hex`
-- `build/Debug/STM32_ESC_DSHOT_H1.bin`
+- `build/Debug/STM32_ESC_DSHOT_E1.elf`
+- `build/Debug/STM32_ESC_DSHOT_E1.hex`
+- `build/Debug/STM32_ESC_DSHOT_E1.bin`
 
 ---
 
@@ -600,7 +600,7 @@ cmake --build --preset Debug
 
 **English**
 
-This repository currently represents the stabilized H1 steady-state experiment version.  
+This repository currently represents the stabilized E1 steady-state experiment version.  
 It is intended for:
 
 - fixed DShot operating point tests
@@ -615,7 +615,7 @@ It does **not** implement:
 
 **中文**
 
-这个仓库当前对应的是已经稳定下来的 H1 稳态实验版本。  
+这个仓库当前对应的是已经稳定下来的 E1 稳态实验版本。  
 它主要适用于：
 
 - 固定 DShot 工况测试

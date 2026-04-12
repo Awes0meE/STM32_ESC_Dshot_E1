@@ -14,7 +14,7 @@
             "interface": "swd",
             "runToEntryPoint": "main",
             "showDevDebugOutput": "raw",
-            "executable": "${workspaceFolder}/build/Debug/STM32_ESC_DSHOT_H1.elf",
+            "executable": "${workspaceFolder}/build/Debug/STM32_ESC_DSHOT_E1.elf",
             "preLaunchTask": "STM32: Build + Flash",
             "postRestartCommands": [
                 "monitor reset"

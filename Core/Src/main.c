@@ -27,7 +27,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "app_h1_test.h"
+#include "app_e1_test.h"
 
 /* USER CODE END Includes */
 
@@ -98,7 +98,7 @@ int main(void)
   MX_USART1_UART_Init();
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
-  H1_Test_Init();
+  E1_Test_Init();
 
   /* USER CODE END 2 */
 
@@ -109,7 +109,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    H1_Test_Task();
+    E1_Test_Task();
   }
   /* USER CODE END 3 */
 }
