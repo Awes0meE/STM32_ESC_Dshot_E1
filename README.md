@@ -16,8 +16,8 @@ This repository contains the current E1 firmware used for ESC steady-state compa
 The firmware runs on a Blue Pill (`STM32F103C8T6`) board and acts as a lightweight experiment controller and data acquisition node.  
 该固件运行在 Blue Pill（`STM32F103C8T6`）开发板上，作为一个轻量级实验控制器和数据采集节点使用。
 
-It is intended for **steady-state operating point comparison**, especially for comparing different ESC variants under the same battery, motor, propeller, and throttle-command conditions.  
-它主要用于**稳态工况对比实验**，尤其适用于在相同电池、电机、螺旋桨和油门命令条件下，对不同 ESC 方案进行横向比较。
+It is intended for **steady-state operating point comparison**, especially for comparing different ESC variants under the same power supply, motor, propeller, and throttle-command conditions.  
+它主要用于**稳态工况对比实验**，尤其适用于在相同电源、电机、螺旋桨和油门命令条件下，对不同 ESC 方案进行横向比较。
 
 ---
 
@@ -36,7 +36,7 @@ Main responsibilities:
 - display live status on a `1.3" I2C OLED`
 - provide a simple local throttle-step button before test start
 
-This E1 firmware is intended for **steady-state operating point comparison**, especially for comparing ESC variants under the same battery, motor, propeller, and command conditions.
+This E1 firmware is intended for **steady-state operating point comparison**, especially for comparing ESC variants under the same power supply, motor, propeller, and command conditions.
 
 **中文**
 
@@ -51,7 +51,7 @@ This E1 firmware is intended for **steady-state operating point comparison**, es
 - 在 `1.3 寸 I2C OLED` 上显示实时状态
 - 在测试开始前通过本地按钮调整待运行油门
 
-这份 E1 固件的目标是做**稳态工况对比**，尤其适用于在相同电池、电机、桨和命令条件下比较不同 ESC 的表现。
+这份 E1 固件的目标是做**稳态工况对比**，尤其适用于在相同电源、电机、桨和命令条件下比较不同 ESC 的表现。
 
 ---
 
@@ -171,7 +171,7 @@ Before the test starts, a local button can adjust the run throttle directly in r
 
 **English**
 
-The current E1 firmware still uses `HC-05` Bluetooth serial for experiment triggering and logging.
+The current E1 firmware uses `HC-05` Bluetooth serial for experiment triggering and logging.
 
 Behavior:
 
@@ -191,7 +191,7 @@ Supported characteristics:
 
 **中文**
 
-当前 E1 版本仍然使用 `HC-05` 蓝牙串口来完成实验触发和日志输出。
+当前 E1 版本使用 `HC-05` 蓝牙串口来完成实验触发和日志输出。
 
 行为如下：
 
@@ -626,5 +626,3 @@ It does **not** implement:
 它**不包含**：
 
 - RPM 闭环控制
-- H2 阶跃响应流程以及后续实验
-
