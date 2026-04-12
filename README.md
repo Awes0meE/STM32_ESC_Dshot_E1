@@ -6,12 +6,12 @@ STM32F103C8T6-based E1 test firmware for ESC steady-state comparison experiments
 
 ---
 
-## H1 Test Firmware
+## E1 Test Firmware
 
-## H1 实验固件说明
+## E1 实验固件说明
 
-This repository contains the current H1 firmware used for ESC steady-state comparison work.  
-本仓库保存了当前用于 ESC 稳态对比实验的 H1 固件版本。
+This repository contains the current E1 firmware used for ESC steady-state comparison work.  
+本仓库保存了当前用于 ESC 稳态对比实验的 E1 固件版本。
 
 The firmware runs on a Blue Pill (`STM32F103C8T6`) board and acts as a lightweight experiment controller and data acquisition node.  
 该固件运行在 Blue Pill（`STM32F103C8T6`）开发板上，作为一个轻量级实验控制器和数据采集节点使用。
@@ -627,3 +627,4 @@ It does **not** implement:
 
 - RPM 闭环控制
 - H2 阶跃响应流程以及后续实验
+
