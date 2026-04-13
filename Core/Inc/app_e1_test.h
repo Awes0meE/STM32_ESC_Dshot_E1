@@ -45,7 +45,7 @@ extern "C" {
 #endif
 
 #ifndef E1_RUN_THROTTLE_DSHOT
-#define E1_RUN_THROTTLE_DSHOT          600U
+#define E1_RUN_THROTTLE_DSHOT          800U
 #endif
 
 #ifndef E1_RUN_THROTTLE_MIN_DSHOT
@@ -102,6 +102,14 @@ extern "C" {
 
 #ifndef E1_OLED_UPDATE_INTERVAL_MS
 #define E1_OLED_UPDATE_INTERVAL_MS     200U
+#endif
+
+#ifndef E1_OLED_POWERUP_DELAY_MS
+#define E1_OLED_POWERUP_DELAY_MS       120U
+#endif
+
+#ifndef E1_OLED_RETRY_INTERVAL_MS
+#define E1_OLED_RETRY_INTERVAL_MS      500U
 #endif
 
 #ifndef E1_OLED_I2C_ADDR

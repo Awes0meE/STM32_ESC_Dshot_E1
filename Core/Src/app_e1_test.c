@@ -16,8 +16,8 @@
 #define E1_DSHOT_FRAME_BITS               16U
 #define E1_DSHOT_RESET_SLOTS              8U
 #define E1_DSHOT_DMA_BUFFER_LENGTH        (E1_DSHOT_FRAME_BITS + E1_DSHOT_RESET_SLOTS)
-#define E1_DSHOT_BIT_0_HIGH_TICKS         54U
-#define E1_DSHOT_BIT_1_HIGH_TICKS         108U
+#define E1_DSHOT_BIT_0_HIGH_TICKS         90U
+#define E1_DSHOT_BIT_1_HIGH_TICKS         180U
 
 #define E1_UART_TX_TIMEOUT_MS             500U
 #define E1_STATUS_LED_ON_LEVEL            GPIO_PIN_RESET
@@ -33,6 +33,7 @@ typedef struct
     uint32_t last_dshot_send_tick;
     uint32_t last_zero_offset_sample_tick;
     uint32_t last_oled_update_tick;
+    uint32_t last_oled_init_attempt_tick;
     uint32_t button_change_tick;
     uint32_t bt_high_since_tick;
     uint16_t current_cmd_us;
@@ -95,6 +96,7 @@ static void E1_SendThrottleSetLine(void);
 static HAL_StatusTypeDef E1_Oled_WriteCommand(uint8_t command);
 static HAL_StatusTypeDef E1_Oled_WriteData(const uint8_t *data, uint16_t size);
 static void E1_Oled_Init(void);
+static void E1_Oled_Service(uint32_t now_ms);
 static void E1_Oled_Clear(void);
 static void E1_Oled_Flush(void);
 static void E1_Oled_Update(uint32_t now_ms);
@@ -141,8 +143,8 @@ void E1_Test_Init(void)
     }
 
     E1_UartRx_Start();
-    E1_Oled_Init();
-    E1_Oled_Update(HAL_GetTick());
+    HAL_Delay(E1_OLED_POWERUP_DELAY_MS);
+    E1_Oled_Service(HAL_GetTick());
     E1_Dshot_TriggerFrame(g_h1.current_dshot_value);
     E1_StatusLed_Update(HAL_GetTick());
 }
@@ -164,6 +166,7 @@ void E1_Test_Task(void)
     E1_Dshot_Service(now_ms);
     E1_StatusLed_Update(now_ms);
     E1_Button_Task(now_ms);
+    E1_Oled_Service(now_ms);
     E1_Oled_Update(now_ms);
 
     bt_connected = E1_IsBluetoothConnected();
@@ -393,7 +396,12 @@ static void E1_UpdateCurrentDerived(E1_AdcProcessed_t *adc_data)
 #endif
 
     adc_data->current_A = signed_delta_v * CURRENT_SCALE_A_PER_V;
-    adc_data->power_W = adc_data->current_A * adc_data->vbat_V;
+    if (adc_data->current_A < 0.0f)
+    {
+        adc_data->current_A = 0.0f;
+    }
+
+    adc_data->power_W = adc_data->vbat_V * adc_data->current_A;
 }
 
 void send_e1_csv_line(const E1_AdcProcessed_t *adc_data)
@@ -513,7 +521,7 @@ static uint8_t E1_IsBluetoothConnected(void)
 static void E1_SendBootBannerOnce(void)
 {
     static const char banner[] =
-        "# boot,t_ms=0,fw=E1_DSHOT500_HC05_TRIGGER,uart=9600,protocol=firewater\r\n";
+        "# boot,t_ms=0,fw=E1_DSHOT300_HC05_TRIGGER,uart=9600,protocol=firewater\r\n";
 
     if (g_h1.boot_banner_sent == 0U)
     {
@@ -769,6 +777,35 @@ static void E1_Oled_Init(void)
     }
 
     E1_Oled_Clear();
+}
+
+static void E1_Oled_Service(uint32_t now_ms)
+{
+    if (g_h1.oled_ready != 0U)
+    {
+        return;
+    }
+
+    if (g_h1.last_oled_init_attempt_tick == 0U)
+    {
+        if (now_ms < E1_OLED_POWERUP_DELAY_MS)
+        {
+            return;
+        }
+    }
+    else if ((now_ms - g_h1.last_oled_init_attempt_tick) < E1_OLED_RETRY_INTERVAL_MS)
+    {
+        return;
+    }
+
+    g_h1.last_oled_init_attempt_tick = now_ms;
+    E1_Oled_Init();
+
+    if (g_h1.oled_ready != 0U)
+    {
+        g_h1.last_oled_update_tick = 0U;
+        E1_Oled_Update(now_ms);
+    }
 }
 
 static void E1_Oled_Clear(void)

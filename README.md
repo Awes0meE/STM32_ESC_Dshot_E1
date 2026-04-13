@@ -30,7 +30,7 @@ The board acts as a lightweight experiment controller and data acquisition node 
 
 Main responsibilities:
 
-- output `DShot500` throttle to the ESC
+- output `DShot300` throttle to the ESC
 - collect current and battery voltage using `ADC + DMA`
 - communicate with the PC through an `HC-05` Bluetooth serial link
 - display live status on a `1.3" I2C OLED`
@@ -45,7 +45,7 @@ This E1 firmware is intended for **steady-state operating point comparison**, es
 
 主要职责：
 
-- 向 ESC 输出 `DShot500` 油门命令
+- 向 ESC 输出 `DShot300` 油门命令
 - 通过 `ADC + DMA` 采集电流和电池电压
 - 通过 `HC-05` 蓝牙串口和电脑通信
 - 在 `1.3 寸 I2C OLED` 上显示实时状态
@@ -141,7 +141,7 @@ Core control implementation:
 
 **English**
 
-The transport is `DShot500`.
+The transport is `DShot300`.
 
 Current behavior:
 
@@ -154,7 +154,7 @@ Before the test starts, a local button can adjust the run throttle directly in r
 
 **中文**
 
-当前底层协议是 `DShot500`。
+当前底层协议是 `DShot300`。
 
 当前行为：
 
@@ -457,7 +457,7 @@ power_W   = current_A * vbat_V
 
 **English**
 
-- `PA6` -> ESC signal (`TIM3_CH1`, DShot500)
+- `PA6` -> ESC signal (`TIM3_CH1`, DShot300)
 - `PA0` <- INA199 output (`ADC1_IN0`)
 - `PA1` <- VBAT divider midpoint (`ADC1_IN1`)
 - `PA9` -> HC-05 RXD (`USART1_TX`)
@@ -470,7 +470,7 @@ power_W   = current_A * vbat_V
 
 **中文**
 
-- `PA6` -> ESC 信号输出（`TIM3_CH1`, DShot500）
+- `PA6` -> ESC 信号输出（`TIM3_CH1`, DShot300）
 - `PA0` <- INA199 输出（`ADC1_IN0`）
 - `PA1` <- 电池分压中点（`ADC1_IN1`）
 - `PA9` -> HC-05 RXD（`USART1_TX`）
@@ -498,7 +498,7 @@ Important assumptions for the current E1 project:
 
 Critical timing requirement:
 
-- `TIM3` must stay in DShot configuration (`PSC=0`, `ARR=143`)
+- `TIM3` must stay in DShot configuration (`PSC=0`, `ARR=239`)
 
 Also ensure:
 
@@ -517,7 +517,7 @@ Also ensure:
 
 最关键的时序要求：
 
-- `TIM3` 必须保持 DShot 配置（`PSC=0`, `ARR=143`）
+- `TIM3` 必须保持 DShot 配置（`PSC=0`, `ARR=239`）
 
 另外还要确保：
 
@@ -596,7 +596,7 @@ cmake --build --preset Debug
 
 ---
 
-## 14. Current Scope | 当前版本边界
+## 14. Current Scope | ??????
 
 **English**
 
@@ -613,16 +613,43 @@ It does **not** implement:
 - RPM closed-loop control
 - H2 step-response workflow and after experiments
 
-**中文**
+**??**
 
-这个仓库当前对应的是已经稳定下来的 E1 稳态实验版本。  
-它主要适用于：
+????????????????? E1 ???????  
+???????
 
-- 固定 DShot 工况测试
-- 电流 / 电压 / 功率记录
-- OLED 辅助台架操作
-- 蓝牙触发实验开始
+- ?? DShot ????
+- ?? / ?? / ????
+- OLED ??????
+- ????????
 
-它**不包含**：
+?**???**?
 
-- RPM 闭环控制
+- RPM ????
+- H2 ????????????
+
+---
+
+## 15. E1-V2.0-DShot300 Update | E1-V2.0-DShot300 ????
+
+**English**
+
+This update finalizes a more flight-representative transport setup by changing the throttle protocol timing from `DShot500` to `DShot300`.  
+In addition, three bench-use improvements are included:
+
+- OLED startup robustness is improved with delayed initialization and background retry, so the display no longer depends on a manual reset after power-up
+- `power_W` is now calculated directly as `vbat_V * current_A`
+- negative current results are clamped to `0`, preventing negative current and negative power values from appearing in the steady-state logs
+
+This version is intended to be the `E1-V2.0-DShot300` milestone for the current steady-state ESC comparison workflow.
+
+**??**
+
+???????????? `DShot500` ??? `DShot300`????????????????????  
+????? 3 ????????????
+
+- OLED ???????????????????????????????
+- `power_W` ????? `vbat_V * current_A` ??
+- ?????? `0` ?????? `0`?????????????????
+
+?????????? ESC ????? `E1-V2.0-DShot300` ??????
