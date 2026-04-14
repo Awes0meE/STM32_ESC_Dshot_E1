@@ -81,7 +81,7 @@ extern "C" {
 #endif
 
 #ifndef E1_BASELINE_SAMPLE_COUNT
-#define E1_BASELINE_SAMPLE_COUNT       400U
+#define E1_BASELINE_SAMPLE_COUNT       600U
 #endif
 
 #ifndef E1_CURRENT_FILTER_SAMPLE_INTERVAL_MS
@@ -89,7 +89,7 @@ extern "C" {
 #endif
 
 #ifndef E1_CURRENT_FILTER_WINDOW_MS
-#define E1_CURRENT_FILTER_WINDOW_MS    200U
+#define E1_CURRENT_FILTER_WINDOW_MS    250U
 #endif
 
 #define E1_CURRENT_FILTER_WINDOW_SAMPLES \
