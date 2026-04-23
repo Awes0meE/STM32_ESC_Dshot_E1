@@ -141,8 +141,18 @@ extern "C" {
 #define CURRENT_OFFSET_V               0.0f
 #endif
 
+/* INA199 gain options: A1=50, A2=100, A3=200 V/V. */
+#ifndef INA199_GAIN_V_V
+#define INA199_GAIN_V_V                200.0f
+#endif
+
+/* Keep this in sync with the actual shunt resistor on the board. */
+#ifndef CURRENT_SHUNT_RESISTANCE_OHM
+#define CURRENT_SHUNT_RESISTANCE_OHM   0.00025f
+#endif
+
 #ifndef CURRENT_SCALE_A_PER_V
-#define CURRENT_SCALE_A_PER_V          80.0f
+#define CURRENT_SCALE_A_PER_V          (1.0f / (INA199_GAIN_V_V * CURRENT_SHUNT_RESISTANCE_OHM))
 #endif
 
 typedef enum

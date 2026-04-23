@@ -59,6 +59,8 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define BTN_THROTTLE_Pin GPIO_PIN_13
 #define BTN_THROTTLE_GPIO_Port GPIOB
+#define ESC_DSHOT_Pin GPIO_PIN_8
+#define ESC_DSHOT_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 

@@ -282,9 +282,16 @@ The firmware also prints human-readable helper lines such as:
 
 ```text
 delta_i_V = v_i_sense - active_zero_offset_V
+CURRENT_SCALE_A_PER_V = 1 / (INA199_GAIN_V_V * CURRENT_SHUNT_RESISTANCE_OHM)
 current_A = delta_i_V * CURRENT_SCALE_A_PER_V
 power_W   = current_A * vbat_V
 ```
+
+Default hardware constants in this repo are now:
+
+- `INA199_GAIN_V_V = 200` (INA199A3)
+- `CURRENT_SHUNT_RESISTANCE_OHM = 0.00025`
+- `CURRENT_SCALE_A_PER_V = 20`
 
 Current polarity is currently set by:
 
@@ -306,7 +313,7 @@ The firmware uses:
 
 ## 10. Hardware Connections
 
-- `PA6` -> ESC signal (`TIM3_CH1`, DShot300)
+- `PB8` -> ESC signal (`TIM4_CH3`, DShot300)
 - `PA0` <- INA199 output (`ADC1_IN0`)
 - `PA1` <- VBAT divider midpoint (`ADC1_IN1`)
 - `PA9` -> HC-05 RXD (`USART1_TX`)
@@ -323,7 +330,7 @@ The firmware uses:
 
 Important assumptions for the current E1 project:
 
-- `TIM3_CH1` on `PA6` for DShot output
+- `TIM4_CH3` on `PB8` for DShot output
 - `USART1` enabled for HC-05 serial
 - `PB12` configured as Bluetooth state input
 - `PB13` configured as button input with pull-up
@@ -332,11 +339,11 @@ Important assumptions for the current E1 project:
 
 ### Critical timing requirement
 
-- `TIM3` must stay in DShot configuration (`PSC=0`, `ARR=239`)
+- `TIM4` must stay in DShot configuration (`PSC=0`, `ARR=239`)
 
 ### Also ensure
 
-- `DMA1_Channel6` interrupt is enabled for TIM3 CH1 DMA
+- `DMA1_Channel5` interrupt is enabled for TIM4 CH3 DMA
 
 ---
 
@@ -363,6 +370,8 @@ Defined in [`Core/Inc/app_e1_test.h`](./Core/Inc/app_e1_test.h):
 ### Analog
 
 - `VBAT_DIVIDER_RATIO`
+- `INA199_GAIN_V_V`
+- `CURRENT_SHUNT_RESISTANCE_OHM`
 - `CURRENT_SCALE_A_PER_V`
 - `E1_CURRENT_SIGN_INVERT`
 - `E1_ZERO_TRACK_DELAY_MS`
@@ -653,6 +662,7 @@ h1:t_ms,state,cmd_raw,dshot_cmd,adc_i_raw,adc_vbat_raw,v_i_sense,v_vbat_adc,curr
 
 ```text
 delta_i_V = v_i_sense - active_zero_offset_V
+CURRENT_SCALE_A_PER_V = 1 / (INA199_GAIN_V_V * CURRENT_SHUNT_RESISTANCE_OHM)
 current_A = delta_i_V * CURRENT_SCALE_A_PER_V
 power_W   = current_A * vbat_V
 ```
@@ -677,7 +687,7 @@ power_W   = current_A * vbat_V
 
 ## 10. 硬件连接
 
-- `PA6` -> ESC 信号输出（`TIM3_CH1`, DShot300）
+- `PB8` -> ESC 信号输出（`TIM4_CH3`, DShot300）
 - `PA0` <- INA199 输出（`ADC1_IN0`）
 - `PA1` <- 电池分压中点（`ADC1_IN1`）
 - `PA9` -> HC-05 RXD（`USART1_TX`）
@@ -694,7 +704,7 @@ power_W   = current_A * vbat_V
 
 当前 E1 工程建议保持这些前提：
 
-- `TIM3_CH1` on `PA6` for DShot output
+- `TIM4_CH3` on `PB8` for DShot output
 - `USART1` enabled for HC-05 serial
 - `PB12` configured as Bluetooth state input
 - `PB13` configured as button input with pull-up
@@ -703,11 +713,11 @@ power_W   = current_A * vbat_V
 
 ### 最关键的时序要求
 
-- `TIM3` 必须保持 DShot 配置（`PSC=0`, `ARR=239`）
+- `TIM4` 必须保持 DShot 配置（`PSC=0`, `ARR=239`）
 
 ### 另外还要确保
 
-- `DMA1_Channel6` interrupt is enabled for TIM3 CH1 DMA
+- `DMA1_Channel5` interrupt is enabled for TIM4 CH3 DMA
 
 ---
 
@@ -734,6 +744,8 @@ power_W   = current_A * vbat_V
 ### 模拟量
 
 - `VBAT_DIVIDER_RATIO`
+- `INA199_GAIN_V_V`
+- `CURRENT_SHUNT_RESISTANCE_OHM`
 - `CURRENT_SCALE_A_PER_V`
 - `E1_CURRENT_SIGN_INVERT`
 - `E1_ZERO_TRACK_DELAY_MS`

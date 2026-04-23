@@ -44,6 +44,10 @@ extern "C" {
 /* Button input with internal pull-up. Active LOW when pressed. */
 #define BTN_THROTTLE_Pin      GPIO_PIN_13
 #define BTN_THROTTLE_GPIO_Port GPIOB
+
+/* ESC DShot output, shared with the telemetry test breadboard wiring. */
+#define ESC_DSHOT_Pin         GPIO_PIN_8
+#define ESC_DSHOT_GPIO_Port   GPIOB
 /* USER CODE END Private defines */
 
 void MX_GPIO_Init(void);
